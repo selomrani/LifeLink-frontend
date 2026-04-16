@@ -2,32 +2,40 @@
   <div class="min-h-screen bg-slate-50 font-sans text-slate-800 selection:bg-red-200 selection:text-red-900">
     
     <!-- Navigation -->
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <!-- LifeLink Logo SVG -->
-          <svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
-          </svg>
-          <span class="text-2xl font-bold tracking-tight text-slate-900">
-            Life<span class="text-red-600">Link</span>
-          </span>
-        </div>
-        <nav class="hidden md:flex gap-8 font-medium text-slate-600">
-          <a href="#" class="hover:text-red-600 transition-colors">Home</a>
-          <a href="#" class="hover:text-red-600 transition-colors">How it Works</a>
-          <a href="#" class="hover:text-red-600 transition-colors">Donation Centers</a>
-        </nav>
-        <div class="flex gap-4">
-          <button class="px-5 py-2.5 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
-            Log In
-          </button>
-          <button class="px-5 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 shadow-md shadow-red-200 rounded-full transition-colors">
-            Join as Donor
-          </button>
-        </div>
-      </div>
-    </header>
+<header class="bg-white shadow-sm sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+      </svg>
+      <span class="text-2xl font-bold tracking-tight text-slate-900">
+        Life<span class="text-red-600">Link</span>
+      </span>
+    </div>
+    
+    <nav class="hidden md:flex gap-8 font-medium text-slate-600">
+      <router-link to="/" class="hover:text-red-600 transition-colors">Home</router-link>
+      <router-link to="/how-it-works" class="hover:text-red-600 transition-colors">How it Works</router-link>
+      <router-link to="/centers" class="hover:text-red-600 transition-colors">Donation Centers</router-link>
+    </nav>
+
+    <div class="flex gap-4">
+      <router-link 
+        to="/login" 
+        class="px-5 py-2.5 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors inline-flex items-center"
+      >
+        Log In
+      </router-link>
+
+      <router-link 
+        to="/register" 
+        class="px-5 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 shadow-md shadow-red-200 rounded-full transition-colors inline-flex items-center"
+      >
+        Join as Donor
+      </router-link>
+    </div>
+  </div>
+</header>
 
     <!-- Hero Section -->
     <main>
