@@ -3,6 +3,7 @@ import Home from "./views/Home.vue";
 import HowItWorks from "./views/HowItWorks.vue";
 import NotFound from "./views/NotFound.vue";
 import loginVue from "./views/auth/login.vue";
+import registerVue from "./views/auth/register.vue";
 const routes = [
   {
     path: "/",
@@ -23,6 +24,11 @@ const routes = [
     path: "/login",
     name: "login",
     component: loginVue,
+  },
+  {
+    path: "/register",
+    name: "register",
+    component: registerVue,
   },
 ];
 
