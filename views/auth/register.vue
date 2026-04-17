@@ -1,12 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
-
-
-axios.defaults.withCredentials = true;
-axios.defaults.baseURL = 'http://localhost:8081/api';
-axios.defaults.headers.common['Accept'] = 'application/json';
-
 const bloodTypes = ref([]);
 const form = ref({
     firstName: '',
@@ -22,13 +16,11 @@ async function fetchBloodTypes() {
     try {
         const response = await axios.get('/bloodtypes');
         bloodTypes.value = response.data.data;
-
         console.log("Loaded types:", bloodTypes.value);
     } catch (error) {
         console.error("Data assignment error:", error);
     }
 }
-
 onMounted(() => {
     fetchBloodTypes();
 });
