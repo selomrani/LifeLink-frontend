@@ -1,7 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 const bloodTypes = ref([]);
+const errors = ref({});
+
 const form = ref({
     firstName: '',
     lastName: '',
@@ -16,11 +21,34 @@ async function fetchBloodTypes() {
     try {
         const response = await axios.get('/bloodtypes');
         bloodTypes.value = response.data.data;
-        console.log("Loaded types:", bloodTypes.value);
     } catch (error) {
         console.error("Data assignment error:", error);
     }
 }
+
+async function handleRegister() {
+    errors.value = {};
+    try {
+        const response = await axios.post('/register', {
+            firstname: form.value.firstName,
+            lastname: form.value.lastName,
+            email: form.value.email,
+            blood_type: form.value.bloodType,
+            role: 'donor',
+            password: form.value.password,
+            password_confirmation: form.value.password_confirmation
+        });
+
+        if (response.status === 201) {
+            router.push('/login');
+        }
+    } catch (error) {
+        if (error.response && error.response.status === 422) {
+            errors.value = error.response.data.errors;
+        }
+    }
+}
+
 onMounted(() => {
     fetchBloodTypes();
 });
@@ -28,7 +56,6 @@ onMounted(() => {
 
 <template>
     <div class="min-h-screen bg-slate-50 text-slate-800 selection:bg-red-200 selection:text-red-900 font-inter">
-
         <header class="bg-white shadow-sm sticky top-0 z-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
                 <div class="flex items-center gap-2">
@@ -39,7 +66,6 @@ onMounted(() => {
                         Life<span class="text-red-600">Link</span>
                     </span>
                 </div>
-
                 <nav class="hidden md:flex gap-8 font-medium text-slate-600">
                     <router-link to="/" class="hover:text-red-600 transition-colors">Home</router-link>
                     <router-link to="/how-it-works" class="hover:text-red-600 transition-colors">How it
@@ -47,7 +73,6 @@ onMounted(() => {
                     <router-link to="/centers" class="hover:text-red-600 transition-colors">Donation
                         Centers</router-link>
                 </nav>
-
                 <div class="flex gap-4">
                     <router-link to="/login"
                         class="px-5 py-2.5 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors inline-flex items-center">
@@ -65,7 +90,6 @@ onMounted(() => {
 
             <div class="w-full max-w-lg">
                 <div class="bg-white p-8 sm:p-10 rounded-[2.5rem] shadow-2xl border border-slate-100 relative z-10">
-
                     <div class="flex justify-center mb-8">
                         <div class="bg-red-50 p-4 rounded-2xl animate-float">
                             <svg class="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,41 +106,41 @@ onMounted(() => {
                     </div>
 
                     <form @submit.prevent="handleRegister" class="space-y-5">
-
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div class="space-y-2">
                                 <label for="firstName" class="text-sm font-bold text-slate-700 ml-1">First Name</label>
-                                <input v-model="form.firstName" type="text" id="firstName" required
-                                    class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-red-500 focus:ring-0 transition-all outline-none placeholder:text-slate-400"
-                                    placeholder="John">
+                                <input v-model="form.firstName" type="text" id="firstName"
+                                    :class="{ 'border-red-500': errors.firstname }"
+                                    class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-red-500 focus:ring-0 transition-all outline-none placeholder:text-slate-400">
+                                <p v-if="errors.firstname" class="text-red-500 text-xs ml-1">{{ errors.firstname[0] }}
+                                </p>
                             </div>
                             <div class="space-y-2">
                                 <label for="lastName" class="text-sm font-bold text-slate-700 ml-1">Last Name</label>
-                                <input v-model="form.lastName" type="text" id="lastName" required
-                                    class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-red-500 focus:ring-0 transition-all outline-none placeholder:text-slate-400"
-                                    placeholder="Doe">
+                                <input v-model="form.lastName" type="text" id="lastName"
+                                    :class="{ 'border-red-500': errors.lastname }"
+                                    class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-red-500 focus:ring-0 transition-all outline-none placeholder:text-slate-400">
+                                <p v-if="errors.lastname" class="text-red-500 text-xs ml-1">{{ errors.lastname[0] }}</p>
                             </div>
                         </div>
 
                         <div class="space-y-2">
                             <label for="email" class="text-sm font-bold text-slate-700 ml-1">Email Address</label>
-                            <input v-model="form.email" type="email" id="email" required
-                                class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-red-500 focus:ring-0 transition-all outline-none placeholder:text-slate-400"
-                                placeholder="name@example.com">
+                            <input v-model="form.email" type="email" id="email"
+                                :class="{ 'border-red-500': errors.email }"
+                                class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-red-500 focus:ring-0 transition-all outline-none placeholder:text-slate-400">
+                            <p v-if="errors.email" class="text-red-500 text-xs ml-1">{{ errors.email[0] }}</p>
                         </div>
 
                         <div class="space-y-2">
-                            <label for="bloodType" class="text-sm font-bold text-slate-700 ml-1">Blood Type
-                                (Optional)</label>
+                            <label for="bloodType" class="text-sm font-bold text-slate-700 ml-1">Blood Type</label>
                             <div class="relative">
                                 <select v-model="form.bloodType" id="bloodType"
+                                    :class="{ 'border-red-500': errors.blood_type }"
                                     class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-red-500 focus:ring-0 transition-all outline-none appearance-none text-slate-700">
                                     <option value="" disabled>Select your blood type</option>
-
-                                    <option v-for="type in bloodTypes" :key="type.id" :value="type.id">
-                                        {{ type.name }}
+                                    <option v-for="type in bloodTypes" :key="type.id" :value="type.name">{{ type.name }}
                                     </option>
-
                                 </select>
                                 <div
                                     class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-slate-400">
@@ -126,23 +150,27 @@ onMounted(() => {
                                     </svg>
                                 </div>
                             </div>
+                            <p v-if="errors.blood_type" class="text-red-500 text-xs ml-1">{{ errors.blood_type[0] }}</p>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div class="space-y-2">
-                                <label for="password" class="text-sm font-bold text-slate-700 ml-1">Password</label>
-                                <input v-model="form.password" type="password" id="password" required minlength="8"
-                                    class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-red-500 focus:ring-0 transition-all outline-none placeholder:text-slate-400"
-                                    placeholder="••••••••">
+                        <div class="space-y-2">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <div class="space-y-2">
+                                    <label for="password" class="text-sm font-bold text-slate-700 ml-1">Password</label>
+                                    <input v-model="form.password" type="password" id="password"
+                                        :class="{ 'border-red-500': errors.password }"
+                                        class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-red-500 focus:ring-0 transition-all outline-none placeholder:text-slate-400">
+                                </div>
+                                <div class="space-y-2">
+                                    <label for="password_confirmation"
+                                        class="text-sm font-bold text-slate-700 ml-1">Confirm</label>
+                                    <input v-model="form.password_confirmation" type="password"
+                                        id="password_confirmation" :class="{ 'border-red-500': errors.password }"
+                                        class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-red-500 focus:ring-0 transition-all outline-none placeholder:text-slate-400">
+                                </div>
                             </div>
-                            <div class="space-y-2">
-                                <label for="password_confirmation"
-                                    class="text-sm font-bold text-slate-700 ml-1">Confirm</label>
-                                <input v-model="form.password_confirmation" type="password" id="password_confirmation"
-                                    required minlength="8"
-                                    class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-red-500 focus:ring-0 transition-all outline-none placeholder:text-slate-400"
-                                    placeholder="••••••••">
-                            </div>
+                            <p v-if="errors.password" class="text-red-500 text-xs ml-1 whitespace-nowrap">{{
+                                errors.password[0] }}</p>
                         </div>
 
                         <div class="flex items-start gap-3 ml-1 mt-2">
@@ -151,9 +179,8 @@ onMounted(() => {
                                     class="w-4 h-4 rounded text-red-600 border-slate-300 focus:ring-red-500 cursor-pointer">
                             </div>
                             <label for="terms" class="text-sm font-medium text-slate-600 cursor-pointer">
-                                I agree to the
-                                <a href="#" class="text-red-600 hover:underline">Terms of Service</a> and
-                                <a href="#" class="text-red-600 hover:underline">Privacy Policy</a>.
+                                I agree to the <a href="#" class="text-red-600 hover:underline">Terms</a> and <a
+                                    href="#" class="text-red-600 hover:underline">Privacy</a>.
                             </label>
                         </div>
 
@@ -163,38 +190,7 @@ onMounted(() => {
                         </button>
                     </form>
                 </div>
-
-                <p class="text-center mt-8 text-slate-600 font-medium mb-8">
-                    Already have an account?
-                    <router-link to="/login"
-                        class="text-red-600 hover:text-red-700 font-bold ml-1 transition-colors">Log in
-                        here</router-link>
-                </p>
             </div>
         </main>
     </div>
 </template>
-
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
-.font-inter {
-    font-family: 'Inter', sans-serif;
-}
-
-@keyframes float {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-10px);
-    }
-}
-
-.animate-float {
-    animation: float 6s ease-in-out infinite;
-}
-</style>
