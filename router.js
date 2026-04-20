@@ -4,6 +4,8 @@ import HowItWorks from "./views/HowItWorks.vue";
 import NotFound from "./views/NotFound.vue";
 import loginVue from "./views/auth/login.vue";
 import registerVue from "./views/auth/register.vue";
+import feedView from "./views/social/feed.vue";
+import dashboard from "./views/admin/dashboard.vue";
 const routes = [
   {
     path: "/",
@@ -29,6 +31,16 @@ const routes = [
     path: "/register",
     name: "register",
     component: registerVue,
+  },
+  {
+    path: "/feed",
+    name: "feed",
+    component: feedView,
+  },
+  {
+    path: "/dashboard",
+    name: "dashboard",
+    component: dashboard,
   },
 ];
 
