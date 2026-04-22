@@ -7,6 +7,7 @@ import registerVue from "./views/auth/register.vue";
 import feedView from "./views/social/feed.vue";
 import dashboard from "./views/admin/dashboard.vue";
 import forgot from "./views/auth/forgot.vue";
+import reset from "./views/auth/reset.vue";
 const routes = [
   {
     path: "/",
@@ -44,9 +45,14 @@ const routes = [
     component: dashboard,
   },
   {
-    path: "/forgot",
+    path: "/forgot-password",
     name: "forgot",
     component: forgot,
+  },
+  {
+    path: "/reset-password",
+    name: "reset",
+    component: reset,
   },
 ];
 
