@@ -9,6 +9,7 @@ import dashboard from "./views/admin/dashboard.vue";
 import forgot from "./views/auth/forgot.vue";
 import reset from "./views/auth/reset.vue";
 import Forbidden from "./views/Forbidden.vue";
+import profile from "./views/social/profile.vue";
 const routes = [
   {
     path: "/",
@@ -59,6 +60,11 @@ const routes = [
     path: "/403",
     name: "Forbidden",
     component: Forbidden,
+  },
+  {
+    path: "/profile",
+    name: "profile",
+    component: profile,
   },
 ];
 
