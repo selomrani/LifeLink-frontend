@@ -8,6 +8,7 @@ import feedView from "./views/social/feed.vue";
 import dashboard from "./views/admin/dashboard.vue";
 import forgot from "./views/auth/forgot.vue";
 import reset from "./views/auth/reset.vue";
+import Forbidden from "./views/Forbidden.vue";
 const routes = [
   {
     path: "/",
@@ -53,6 +54,11 @@ const routes = [
     path: "/reset-password",
     name: "reset",
     component: reset,
+  },
+  {
+    path: "/403",
+    name: "Forbidden",
+    component: Forbidden,
   },
 ];
 

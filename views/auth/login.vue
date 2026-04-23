@@ -12,9 +12,7 @@ const form = ref({
     password: '',
     remember: false
 });
-onMounted(() => {
-    const token = localStorage.getItem('token');
-});
+
 
 const handleLogin = async () => {
     errors.value = {};
@@ -23,11 +21,10 @@ const handleLogin = async () => {
     try {
         const response = await axios.post('/login', form.value);
         const { route, user, token } = response.data;
-        localStorage.setItem('user_data', JSON.stringify(user));
+        localStorage.setItem('user_data', JSON.stringify({ ...user, token }));
         localStorage.setItem('user_route', route);
-        localStorage.setItem('auth_token', token);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         router.push(route === 'admin' ? '/dashboard' : '/feed');
-
     } catch (error) {
         if (error.response?.status === 422) {
             errors.value = error.response.data.errors;
