@@ -10,6 +10,7 @@ import forgot from "./views/auth/forgot.vue";
 import reset from "./views/auth/reset.vue";
 import Forbidden from "./views/Forbidden.vue";
 import profile from "./views/social/profile.vue";
+import postDetails from "./views/social/details.vue";
 const routes = [
   {
     path: "/",
@@ -65,6 +66,11 @@ const routes = [
     path: "/profile",
     name: "profile",
     component: profile,
+  },
+  {
+    path: "/post/:id",
+    name: "postDetails",
+    component: postDetails,
   },
 ];
 

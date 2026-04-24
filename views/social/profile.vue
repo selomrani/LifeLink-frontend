@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router';
 const router = useRouter();
 const bloodTypes = ref([]);
 async function fetchBloodTypes() {
@@ -12,9 +12,19 @@ async function fetchBloodTypes() {
         console.error("Data assignment error:", error);
     }
 }
+const user = ref(null);
 const showDeleteModal = ref(false);
 const photoPreview = ref(null);
 const fileInput = ref(null);
+const toastMessage = ref('');
+let toastTimeout = null;
+
+const showToast = (message) => {
+    toastMessage.value = message;
+    if (toastTimeout) clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => { toastMessage.value = ''; }, 3000);
+};
+
 const triggerPhotoUpload = () => {
     fileInput.value.click();
 };
@@ -29,6 +39,30 @@ const handlePhotoChange = (event) => {
         reader.readAsDataURL(file);
     }
 };
+
+async function updateProfile() {
+    try {
+        const formData = new FormData();
+        formData.append('_method', 'PUT');
+        formData.append('firstname', user.value.firstname);
+        formData.append('lastname', user.value.lastname);
+        formData.append('email', user.value.email);
+        if (!user.value.blood_type_id) {
+            formData.append('blood_type_id', user.value.blood_type_id);
+        }
+        if (fileInput.value.files[0]) {
+            formData.append('photo', fileInput.value.files[0]);
+        }
+        const response = await axios.post('/profile', formData);
+        user.value = response.data.user;
+        localStorage.setItem('user_data', JSON.stringify(response.data.user));
+        showToast('Profile updated successfully!');
+    } catch (error) {
+        console.error("Update error:", error);
+        showToast('Failed to update profile. Please try again.');
+    }
+}
+
 async function deleteAccount() {
     try {
         await axios.delete('/profile');
@@ -41,17 +75,33 @@ async function deleteAccount() {
         console.error("Delete error:", error);
     }
 }
+
 onMounted(() => {
     fetchBloodTypes();
-})
+    const stored = localStorage.getItem('user_data');
+    if (!stored) {
+        router.push('/login');
+        return;
+    }
+    user.value = JSON.parse(stored);
+});
 </script>
 
 <template>
     <div class="min-h-screen bg-[#F3F4F6] text-[#1c1e21] pb-12 font-sans selection:bg-red-200">
+
+        <!-- Toast -->
+        <transition name="toast">
+            <div v-if="toastMessage"
+                class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] bg-gray-900 text-white text-sm font-medium px-5 py-3 rounded-2xl shadow-lg">
+                {{ toastMessage }}
+            </div>
+        </transition>
+
         <!-- Sticky Header -->
         <header
             class="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-40 h-16 flex items-center px-4 md:px-8 border-b border-gray-200">
-            <a href="#"
+            <router-link to="/feed"
                 class="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium mr-auto group">
                 <div class="p-1.5 rounded-full group-hover:bg-gray-100 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,13 +109,13 @@ onMounted(() => {
                     </svg>
                 </div>
                 Back to Feed
-            </a>
+            </router-link>
             <span class="text-lg font-bold text-gray-800 absolute left-1/2 -translate-x-1/2">
                 Settings
             </span>
         </header>
 
-        <main class="max-w-2xl mx-auto pt-8 px-4 space-y-6">
+        <main v-if="user" class="max-w-2xl mx-auto pt-8 px-4 space-y-6">
 
             <!-- Profile Info Card -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -82,7 +132,7 @@ onMounted(() => {
                         <div class="relative group cursor-pointer" @click="triggerPhotoUpload">
                             <div
                                 class="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-md bg-gray-100">
-                                <img :src="photoPreview || user?.profile_photo_url || 'https://ui-avatars.com/api/?name=User&color=7F9CF5&background=EBF4FF'"
+                                <img :src="photoPreview || user.profile_photo_url || 'https://ui-avatars.com/api/?name=User&color=7F9CF5&background=EBF4FF'"
                                     class="w-full h-full object-cover transition-opacity group-hover:opacity-75"
                                     alt="Profile Photo">
                             </div>
@@ -95,7 +145,6 @@ onMounted(() => {
                                         d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
                             </div>
-                            <!-- Backend implementation ready: give it a name attribute or bind it -->
                             <input type="file" ref="fileInput" name="profile_photo" class="hidden" accept="image/*"
                                 @change="handlePhotoChange">
                         </div>
@@ -107,19 +156,19 @@ onMounted(() => {
                         </div>
                     </div>
 
-                    <!-- Form Fields (Ready for backend implementation) -->
-                    <form action="#" method="POST" class="space-y-5">
+                    <!-- Form Fields -->
+                    <form @submit.prevent="updateProfile" class="space-y-5">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">First
                                     Name</label>
-                                <input type="text" name="firstname" :value="user?.firstname" required
+                                <input type="text" name="firstname" v-model="user.firstname" required
                                     class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-200 font-medium focus:bg-white transition-colors">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Last
                                     Name</label>
-                                <input type="text" name="lastname" :value="user?.lastname" required
+                                <input type="text" name="lastname" v-model="user.lastname" required
                                     class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-200 font-medium focus:bg-white transition-colors">
                             </div>
                         </div>
@@ -127,23 +176,23 @@ onMounted(() => {
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Email
                                 Address</label>
-                            <input type="email" name="email" :value="user?.email" required
+                            <input type="email" name="email" v-model="user.email" required
                                 class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-200 font-medium focus:bg-white transition-colors">
                         </div>
 
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Blood
                                 Type</label>
-                            <select name="blood_type_id" :value="user?.blood_type_id || ''"
-                                :disabled="!!user?.blood_type_id" required
+                            <select name="blood_type_id" v-model="user.blood_type_id" :disabled="!!user.blood_type_id"
+                                required
                                 class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-200 font-bold focus:bg-white transition-colors appearance-none"
-                                :class="{ 'cursor-pointer': !user?.blood_type_id, 'cursor-not-allowed bg-gray-100 text-gray-500 opacity-80': !!user?.blood_type_id }">
+                                :class="{ 'cursor-pointer': !user.blood_type_id, 'cursor-not-allowed bg-gray-100 text-gray-500 opacity-80': !!user.blood_type_id }">
                                 <option disabled value="">Select your blood type...</option>
                                 <option v-for="type in bloodTypes" :key="type.id" :value="type.id">
                                     {{ type.name }}
                                 </option>
                             </select>
-                            <p v-if="user?.blood_type_id" class="text-xs text-red-500 mt-2 font-medium">To change your
+                            <p v-if="user.blood_type_id" class="text-xs text-red-500 mt-2 font-medium">To change your
                                 verified blood type, please contact support.</p>
                             <p v-else class="text-xs text-gray-500 mt-2">Your blood type is used to match you with
                                 compatible emergency requests. You can only set this once.</p>
@@ -200,8 +249,7 @@ onMounted(() => {
                         <p class="text-sm text-gray-500 mb-6">Are you sure you want to delete your account? All of your
                             data will be permanently removed. This action cannot be undone.</p>
 
-                        <form action="#" method="POST" class="flex gap-3">
-                            <!-- In Laravel, you would add a hidden _method input for DELETE here -->
+                        <div class="flex gap-3">
                             <button type="button" @click="showDeleteModal = false"
                                 class="flex-1 px-4 py-3 rounded-xl font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">
                                 Cancel
@@ -210,7 +258,7 @@ onMounted(() => {
                                 class="flex-1 px-4 py-3 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 transition-colors flex items-center justify-center gap-2">
                                 Yes, Delete
                             </button>
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -227,5 +275,16 @@ onMounted(() => {
 .fade-enter-from,
 .fade-leave-to {
     opacity: 0;
+}
+
+.toast-enter-active,
+.toast-leave-active {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(12px);
 }
 </style>

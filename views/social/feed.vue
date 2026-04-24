@@ -559,8 +559,8 @@ const showToast = (message) => {
     toastMessage.value = message;
     if (toastTimeout) clearTimeout(toastTimeout);
     toastTimeout = setTimeout(() => { toastMessage.value = ''; }, 3000);
+    setTimeout(() => router.push('profile'), 1000);
 };
-
 const submitPost = async () => {
     if (!isPostValid.value) return;
     try {
