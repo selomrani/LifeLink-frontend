@@ -1,7 +1,6 @@
 <template>
     <div class="min-h-screen pb-12 bg-[#F3F4F6] text-[#1c1e21] antialiased selection:bg-red-200">
 
-        <!-- Sticky Header -->
         <header
             class="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-40 h-16 flex items-center px-4 md:px-8 justify-between border-b border-gray-200">
             <div class="flex items-center gap-3 cursor-pointer">
@@ -39,7 +38,6 @@
 
         <main class="max-w-[640px] mx-auto pt-6 px-4">
 
-            <!-- Create Post Trigger -->
             <div
                 class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 mb-6 hover:shadow-md transition-shadow">
                 <div class="flex gap-4 items-center">
@@ -51,7 +49,6 @@
                 </div>
             </div>
 
-            <!-- Loading Skeleton -->
             <div v-if="isLoading" class="space-y-6">
                 <div v-for="i in 2" :key="i"
                     class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 animate-pulse">
@@ -75,12 +72,10 @@
                 </div>
             </div>
 
-            <!-- Feed -->
             <div v-else class="space-y-6">
                 <article v-for="post in filteredPosts" :key="post.id"
                     class="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200 border border-gray-200 overflow-hidden">
 
-                    <!-- Post Header -->
                     <div class="p-4 flex items-start justify-between">
                         <div class="flex gap-3 items-center">
                             <img :src="post.user.profile_photo_url"
@@ -126,12 +121,10 @@
                         </div>
                     </div>
 
-                    <!-- Post Description -->
                     <div class="px-4 pb-3 text-[15px] leading-relaxed text-gray-800 whitespace-pre-wrap">
                         {{ post.description }}
                     </div>
 
-                    <!-- Post Media -->
                     <div class="relative bg-gray-50 border-y border-gray-100 overflow-hidden mx-4 rounded-xl mb-3">
                         <img v-if="post.media_path" :src="post.media_path"
                             class="w-full h-auto max-h-[400px] object-cover transition-transform duration-700 hover:scale-105 rounded-xl">
@@ -149,7 +142,6 @@
                         </div>
                     </div>
 
-                    <!-- Post Stats -->
                     <div class="px-4 py-2 flex items-center justify-between border-b border-gray-50">
                         <div class="flex items-center gap-1.5 text-sm text-gray-500">
                             <div class="flex -space-x-1">
@@ -179,9 +171,8 @@
                         </div>
                     </div>
 
-                    <!-- Post Actions -->
                     <div class="p-3 bg-gray-50/50 flex gap-3 rounded-b-2xl">
-                        <button @click="showToast('Thank you! Redirecting to donation form...')"
+                        <button @click="showToast('Thank you for offering to donate blood!')"
                             class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl transition-all shadow-sm shadow-red-200 active:scale-[0.98] flex items-center justify-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -189,7 +180,8 @@
                             </svg>
                             Donate Blood
                         </button>
-                        <button @click="showToast('Support link copied to clipboard.')"
+                        
+                        <button @click="openSupportModal(post)"
                             class="flex-1 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2.5 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm">
                             <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -200,7 +192,6 @@
                     </div>
                 </article>
 
-                <!-- Empty State -->
                 <div v-if="filteredPosts.length === 0"
                     class="py-16 text-center bg-white rounded-2xl border border-dashed border-gray-300 shadow-sm">
                     <div
@@ -222,7 +213,6 @@
                     </button>
                 </div>
 
-                <!-- All Caught Up -->
                 <div v-if="filteredPosts.length > 0"
                     class="py-10 flex flex-col items-center justify-center text-center opacity-80 mt-4">
                     <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-3">
@@ -237,7 +227,6 @@
             </div>
         </main>
 
-        <!-- Profile Sidebar -->
         <transition name="fade">
             <div v-if="isProfileOpen" class="fixed inset-0 z-[100] flex justify-end">
                 <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" @click="isProfileOpen = false"></div>
@@ -348,7 +337,6 @@
             </div>
         </transition>
 
-        <!-- Create Post Modal -->
         <transition name="fade">
             <div v-if="isCreatePostOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
                 <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="isCreatePostOpen = false"></div>
@@ -417,7 +405,6 @@
                             </div>
                         </div>
 
-                        <!-- Image Upload -->
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Attach
                                 Image (Optional)</label>
@@ -469,7 +456,35 @@
             </div>
         </transition>
 
-        <!-- Toast -->
+        <transition name="fade">
+            <div v-if="isSupportModalOpen" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="closeSupportModal"></div>
+                <div class="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-2">Support LifeLink</h2>
+                    <p class="text-sm text-gray-500 mb-6">Enter an amount to help cover medical costs.</p>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Amount (USD)</label>
+                            <input type="number" v-model="donationAmount" 
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xl font-bold focus:ring-2 focus:ring-red-400 outline-none"
+                                placeholder="5.00">
+                        </div>
+
+                        <div class="p-3 border border-gray-200 rounded-xl bg-gray-50">
+                            <div id="card-element"></div>
+                        </div>
+                    </div>
+
+                    <button @click="processSupport" :disabled="isProcessing"
+                        class="w-full mt-6 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                        <span v-if="isProcessing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                        {{ isProcessing ? 'Processing...' : 'Pay Now' }}
+                    </button>
+                </div>
+            </div>
+        </transition>
+
         <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[150] bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl font-medium text-sm transition-all duration-300 flex items-center gap-3"
             :class="toastMessage ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95 pointer-events-none'">
             <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]">
@@ -484,6 +499,7 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import router from '../../router';
+import { loadStripe } from '@stripe/stripe-js';
 
 const user = ref(null);
 const posts = ref([]);
@@ -493,6 +509,15 @@ const isProfileOpen = ref(false);
 const isCreatePostOpen = ref(false);
 const toastMessage = ref('');
 let toastTimeout = null;
+const isLoggingOut = ref(false); // Added for the logout loading state
+
+
+const isSupportModalOpen = ref(false);
+const isProcessing = ref(false);
+const donationAmount = ref(10);
+const selectedPostId = ref(null);
+let stripe = null;
+let cardElement = null;
 
 const bloodTypes = ref([]);
 async function fetchBloodTypes() {
@@ -503,6 +528,7 @@ async function fetchBloodTypes() {
         console.error("Data assignment error:", error);
     }
 }
+
 const newPost = ref({
     description: '',
     blood_type: '',
@@ -557,12 +583,13 @@ const isPostValid = computed(() => {
         newPost.value.location.trim() !== '';
 });
 
+
 const showToast = (message) => {
     toastMessage.value = message;
     if (toastTimeout) clearTimeout(toastTimeout);
     toastTimeout = setTimeout(() => { toastMessage.value = ''; }, 3000);
-    setTimeout(() => router.push('profile'), 1000);
 };
+
 const submitPost = async () => {
     if (!isPostValid.value) return;
     try {
@@ -576,6 +603,9 @@ const submitPost = async () => {
         isCreatePostOpen.value = false;
         showToast('Request posted successfully!');
         newPost.value = { description: '', blood_type: '', location: '', urgency: 'High', mediaPreview: null };
+        
+        // Moved the redirect here so it only happens when intentionally creating a post
+        setTimeout(() => router.push('profile'), 1000); 
     } catch (error) {
         console.error("Post error:", error);
         showToast('Failed to post request. Please try again.');
@@ -591,7 +621,9 @@ const removeImage = () => {
     if (newPost.value.mediaPreview) URL.revokeObjectURL(newPost.value.mediaPreview);
     newPost.value.mediaPreview = null;
 };
+
 async function logout() {
+    isLoggingOut.value = true;
     try {
         await axios.post('/logout');
     } catch (error) {
@@ -603,6 +635,54 @@ async function logout() {
         router.push('/login');
     }
 }
+
+// --- Stripe Logic ---
+const openSupportModal = async (post) => {
+    selectedPostId.value = post.id;
+    isSupportModalOpen.value = true;
+    
+    if (!stripe) {
+        // REPLACE THIS with your actual Stripe publishable key
+        stripe = await loadStripe('pk_test_51T3yYyDluo6RdWeVcZ0B1sr9RqOoGBwI50V1ET5UFAfHQknOGASQxwfoyjGZdnJgrWGlgxvgnGW1BAxVdUPckpIL00P8OwoRnO');
+        const elements = stripe.elements();
+        cardElement = elements.create('card', {
+            style: { base: { fontSize: '16px', color: '#1c1e21' } }
+        });
+    }
+
+    setTimeout(() => cardElement.mount('#card-element'), 100);
+};
+
+const processSupport = async () => {
+    if (donationAmount.value <= 0) return;
+    isProcessing.value = true;
+
+    try {
+        const { data } = await axios.post(`/feed/${selectedPostId.value}/donate`, {
+            amount: donationAmount.value
+        });
+
+        const result = await stripe.confirmCardPayment(data.client_secret, {
+            payment_method: { card: cardElement }
+        });
+
+        if (result.error) {
+            showToast(result.error.message);
+        } else if (result.paymentIntent.status === 'succeeded') {
+            showToast("Donation successful! Thank you.");
+            closeSupportModal();
+        }
+    } catch (e) {
+        showToast("Error connecting to payment server.");
+    } finally {
+        isProcessing.value = false;
+    }
+};
+
+const closeSupportModal = () => {
+    isSupportModalOpen.value = false;
+    if (cardElement) cardElement.unmount();
+};
 </script>
 
 <style>
