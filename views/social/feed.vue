@@ -17,12 +17,12 @@
 
             <div class="flex items-center gap-4">
                 <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-full shadow-sm cursor-pointer"
-                    @click="filterActive = !filterActive" title="Show only requests you can donate to">
+                    @click="filterActive = filterActive === 1 ? 0 : 1">
                     <span class="text-xs font-bold text-gray-500 uppercase tracking-wide">Compatible</span>
                     <button :class="['w-10 h-5 flex items-center rounded-full px-1 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-200',
-                        filterActive ? 'bg-red-500' : 'bg-gray-300']">
+                        filterActive === 1 ? 'bg-red-500' : 'bg-gray-300']">
                         <div :class="['w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-300',
-                            filterActive ? 'translate-x-4' : 'translate-x-0']">
+                            filterActive === 1 ? 'translate-x-4' : 'translate-x-0']">
                         </div>
                     </button>
                 </div>
@@ -73,18 +73,18 @@
             </div>
 
             <div v-else class="space-y-6">
-                <article v-for="post in filteredPosts" :key="post.id"
+                <article v-for="post in posts" :key="post.id"
                     class="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200 border border-gray-200 overflow-hidden">
 
                     <div class="p-4 flex items-start justify-between">
                         <div class="flex gap-3 items-center">
-                            <img :src="post.user.profile_photo_url"
+                            <img :src="post.user?.profile_photo_url"
                                 class="w-12 h-12 rounded-full border-2 border-gray-50 shadow-sm object-cover"
                                 alt="Poster">
                             <div>
                                 <h3
                                     class="font-bold text-[16px] text-gray-900 leading-tight hover:underline cursor-pointer">
-                                    {{ post.user.firstname }} {{ post.user.lastname }}
+                                    {{ post.user?.firstname }} {{ post.user?.lastname }}
                                 </h3>
                                 <div class="flex flex-wrap items-center gap-1.5 text-[13px] text-gray-500 mt-1">
                                     <span>{{ formatDate(post.created_at) }}</span>
@@ -98,25 +98,17 @@
                                         </svg>
                                         {{ post.location }}
                                     </span>
-                                    <span>•</span>
-                                    <span class="text-xs font-semibold text-gray-400">{{ post.distance }}</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="flex flex-col items-end gap-1.5">
                             <div
-                                class="bg-red-50 text-red-700 border border-red-100 px-3 py-1 rounded-lg text-[13px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
-                                <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"
-                                    v-if="post.urgency === 'Critical'"></span>
+                                class="bg-red-50 text-red-700 border border-red-100 px-3 py-1 rounded-lg text-[13px] font-black uppercase tracking-widest shadow-sm">
                                 {{ post.blood_type }}
                             </div>
-                            <span :class="[
-                                'text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded',
-                                post.urgency === 'Critical' ? 'bg-red-600 text-white' :
-                                    post.urgency === 'High' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'
-                            ]">
-                                {{ post.urgency }}
+                            <span v-if="post.needed_by" class="text-[11px] text-gray-400 font-medium">
+                                Needed by {{ formatDate(post.needed_by) }}
                             </span>
                         </div>
                     </div>
@@ -125,20 +117,12 @@
                         {{ post.description }}
                     </div>
 
-                    <div class="relative bg-gray-50 border-y border-gray-100 overflow-hidden mx-4 rounded-xl mb-3">
+                    <div class="relative overflow-hidden mx-4 rounded-xl mb-3">
                         <img v-if="post.media_path" :src="post.media_path"
                             class="w-full h-auto max-h-[400px] object-cover transition-transform duration-700 hover:scale-105 rounded-xl">
                         <div v-else
-                            class="w-full h-48 bg-gradient-to-br from-red-50 to-gray-100 flex items-center justify-center rounded-xl">
-                            <div
-                                class="bg-white/90 backdrop-blur px-5 py-2.5 rounded-full shadow-sm border border-gray-100 text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-                                <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                Community Need
-                            </div>
+                            class="w-full h-40 bg-gray-50 border border-gray-100 flex items-center justify-center rounded-xl">
+                            <span class="text-xs text-gray-400 font-medium">No image attached</span>
                         </div>
                     </div>
 
@@ -154,11 +138,12 @@
                                     </svg>
                                 </div>
                             </div>
-                            <span class="font-medium hover:underline cursor-pointer">{{ post.likes }} supports</span>
+                            <span class="font-medium hover:underline cursor-pointer">{{ post.donations_count || 0 }}
+                                supports</span>
                         </div>
                         <div class="flex items-center gap-4 text-sm font-medium text-gray-500">
                             <span @click="$router.push(`/post/${post.id}`)" class="hover:underline cursor-pointer">
-                                {{ post.comments_count }} comments
+                                {{ post.comments_count || 0 }} comments
                             </span>
                             <span class="hover:underline cursor-pointer flex items-center gap-1">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,25 +159,26 @@
                     <div class="p-3 bg-gray-50/50 flex gap-3 rounded-b-2xl">
                         <button @click="showToast('Thank you for offering to donate blood!')"
                             class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl transition-all shadow-sm shadow-red-200 active:scale-[0.98] flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 4.354a4 4 0 115.5 5.5L12 21.5l-5.5-11.646a4 4 0 115.5-5.5z" />
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="white">
+                                <path
+                                    d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
                             </svg>
                             Donate Blood
                         </button>
-                        
+
                         <button @click="openSupportModal(post)"
                             class="flex-1 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2.5 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm">
-                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg class="w-5 h-5 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="1" x2="12" y2="23" />
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                             </svg>
                             Support Cost
                         </button>
                     </div>
                 </article>
 
-                <div v-if="filteredPosts.length === 0"
+                <div v-if="posts.length === 0"
                     class="py-16 text-center bg-white rounded-2xl border border-dashed border-gray-300 shadow-sm">
                     <div
                         class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4 ring-8 ring-gray-50/50">
@@ -203,26 +189,14 @@
                     </div>
                     <h3 class="font-bold text-lg text-gray-800 mb-1">No requests found</h3>
                     <p class="text-gray-500 text-sm max-w-xs mx-auto mb-4">
-                        <span v-if="filterActive">There are currently no active requests compatible with your blood type
-                            ({{ user?.blood_type }}).</span>
-                        <span v-else>There are no active blood requests at the moment.</span>
+                        <span v-if="filterActive === 1">No active requests compatible with your blood type ({{
+                            user?.blood_type }}).</span>
+                        <span v-else>No active blood requests at the moment.</span>
                     </p>
-                    <button v-if="filterActive" @click="filterActive = false"
+                    <button v-if="filterActive === 1" @click="filterActive = 0"
                         class="text-red-600 font-bold hover:underline text-sm bg-red-50 px-4 py-2 rounded-lg">
                         View all requests
                     </button>
-                </div>
-
-                <div v-if="filteredPosts.length > 0"
-                    class="py-10 flex flex-col items-center justify-center text-center opacity-80 mt-4">
-                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-3">
-                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                            </path>
-                        </svg>
-                    </div>
-                    <h4 class="font-bold text-gray-800 text-lg">You're all caught up!</h4>
-                    <p class="text-gray-500 text-sm mt-1">You've seen all recent blood requests in your area.</p>
                 </div>
             </div>
         </main>
@@ -243,22 +217,31 @@
                     </div>
 
                     <div class="p-6 flex flex-col items-center border-b border-gray-100">
-                        <img :src="user?.profile_photo_url"
-                            class="w-24 h-24 rounded-full object-cover border-4 border-red-50 shadow-md mb-4" alt="Me">
+                        <div class="relative mb-4">
+                            <img :src="user?.profile_photo_url"
+                                class="w-24 h-24 rounded-full object-cover border-4 border-red-50 shadow-md" alt="Me">
+                            <div
+                                class="absolute bottom-0 right-0 bg-red-500 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center">
+                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                        </div>
                         <h3 class="text-2xl font-bold text-gray-900">{{ user?.firstname }} {{ user?.lastname }}</h3>
                         <div
                             class="mt-2 bg-red-100 text-red-700 px-4 py-1.5 rounded-full text-sm font-black tracking-widest shadow-sm border border-red-200">
                             {{ user?.blood_type }}
                         </div>
-                        <a href="#" @click.prevent="showToast('Redirecting to Edit Profile page...')"
-                            class="mt-6 w-full py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold rounded-xl text-center transition-colors text-sm shadow-sm flex items-center justify-center gap-2">
+
+                        <button @click="$router.push('/myposts'); isProfileOpen = false;"
+                            class="mt-6 w-full py-2.5 bg-gray-900 hover:bg-black text-white font-semibold rounded-xl text-center transition-colors text-sm shadow-md flex items-center justify-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
-                                </path>
+                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                             </svg>
-                            Update Profile
-                        </a>
+                            View My Posts
+                        </button>
                     </div>
 
                     <div class="p-6 flex-1 overflow-y-auto">
@@ -284,35 +267,36 @@
                                         class="p-2 bg-gray-100 rounded-lg text-gray-500 group-hover:bg-red-50 group-hover:text-red-500 transition-colors">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </div>
                                     <span class="font-medium text-gray-700 group-hover:text-gray-900">Donation
                                         History</span>
                                 </div>
-                                <svg class="w-4 h-4 text-gray-400 group-hover:text-gray-600" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 5l7 7-7 7" />
                                 </svg>
                             </button>
-                            <button
+
+                            <button @click="$router.push('/profile/edit'); isProfileOpen = false;"
                                 class="w-full flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-100 group">
                                 <div class="flex items-center gap-3">
                                     <div
                                         class="p-2 bg-gray-100 rounded-lg text-gray-500 group-hover:bg-gray-200 transition-colors">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-                                            </path>
+                                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                         </svg>
                                     </div>
-                                    <span class="font-medium text-gray-700 group-hover:text-gray-900">Settings</span>
+                                    <span class="font-medium text-gray-700 group-hover:text-gray-900">Edit
+                                        Profile</span>
                                 </div>
-                                <svg class="w-4 h-4 text-gray-400 group-hover:text-gray-600" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 5l7 7-7 7" />
                                 </svg>
@@ -327,8 +311,7 @@
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                     stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                </path>
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                             </svg>
                             {{ isLoggingOut ? 'Logging Out...' : 'Log Out' }}
                         </button>
@@ -375,7 +358,9 @@
                                 <select v-model="newPost.blood_type"
                                     class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-200 font-bold focus:bg-white transition-colors appearance-none">
                                     <option disabled value="">Select type...</option>
-                                    <option v-for="bt in bloodTypes" :key="bt" :value="bt">{{ bt }}</option>
+                                    <option v-for="bt in bloodTypes" :key="bt.id || bt"
+                                        :value="bt.id || bt.blood_type || bt">{{ bt.blood_type || bt.name || bt }}
+                                    </option>
                                 </select>
                             </div>
                             <div>
@@ -388,21 +373,11 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Urgency
-                                Level</label>
-                            <div class="flex gap-2">
-                                <button v-for="level in ['Routine', 'High', 'Critical']" :key="level"
-                                    @click="newPost.urgency = level" :class="[
-                                        'flex-1 py-2 text-sm font-bold rounded-xl border transition-all',
-                                        newPost.urgency === level
-                                            ? (level === 'Critical' ? 'bg-red-100 border-red-500 text-red-700' :
-                                                level === 'High' ? 'bg-orange-100 border-orange-500 text-orange-700' :
-                                                    'bg-gray-200 border-gray-500 text-gray-800')
-                                            : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
-                                    ]">
-                                    {{ level }}
-                                </button>
-                            </div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Needed
+                                By</label>
+                            <input type="date" v-model="newPost.needed_by"
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-200 focus:bg-white transition-colors">
+                            <p class="text-xs text-gray-400 mt-1">Leave blank if immediately needed</p>
                         </div>
 
                         <div>
@@ -434,8 +409,7 @@
                                         </svg>
                                         <p class="mb-1 text-sm text-gray-500"><span class="font-bold">Click to
                                                 upload</span> or drag and drop</p>
-                                        <p class="text-[10px] text-gray-400 font-medium">PNG, JPG or WEBP (Max
-                                            5MB)</p>
+                                        <p class="text-[10px] text-gray-400 font-medium">PNG, JPG or WEBP (Max 5MB)</p>
                                     </div>
                                     <input type="file" class="hidden" accept="image/*" @change="handleImageUpload" />
                                 </label>
@@ -460,25 +434,29 @@
             <div v-if="isSupportModalOpen" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
                 <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="closeSupportModal"></div>
                 <div class="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6">
-                    <h2 class="text-xl font-bold text-gray-900 mb-2">Support LifeLink</h2>
-                    <p class="text-sm text-gray-500 mb-6">Enter an amount to help cover medical costs.</p>
-                    
+                    <h2 class="text-xl font-bold text-gray-900 mb-2">Support this request</h2>
+                    <p class="text-sm text-gray-500 mb-6">Help cover costs like transport or medication for this
+                        patient.</p>
+
                     <div class="space-y-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Amount (USD)</label>
-                            <input type="number" v-model="donationAmount" 
+                            <input type="number" v-model="donationAmount"
                                 class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xl font-bold focus:ring-2 focus:ring-red-400 outline-none"
-                                placeholder="5.00">
+                                placeholder="10.00">
                         </div>
-
-                        <div class="p-3 border border-gray-200 rounded-xl bg-gray-50">
-                            <div id="card-element"></div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Card details</label>
+                            <div class="p-3 border border-gray-200 rounded-xl bg-gray-50">
+                                <div id="card-element"></div>
+                            </div>
                         </div>
                     </div>
 
                     <button @click="processSupport" :disabled="isProcessing"
                         class="w-full mt-6 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                        <span v-if="isProcessing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                        <span v-if="isProcessing"
+                            class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                         {{ isProcessing ? 'Processing...' : 'Pay Now' }}
                     </button>
                 </div>
@@ -487,8 +465,7 @@
 
         <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[150] bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl font-medium text-sm transition-all duration-300 flex items-center gap-3"
             :class="toastMessage ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95 pointer-events-none'">
-            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]">
-            </div>
+            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]"></div>
             {{ toastMessage }}
         </div>
 
@@ -496,7 +473,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
 import router from '../../router';
 import { loadStripe } from '@stripe/stripe-js';
@@ -504,13 +481,12 @@ import { loadStripe } from '@stripe/stripe-js';
 const user = ref(null);
 const posts = ref([]);
 const isLoading = ref(true);
-const filterActive = ref(true);
+const filterActive = ref(1);
 const isProfileOpen = ref(false);
 const isCreatePostOpen = ref(false);
+const isLoggingOut = ref(false);
 const toastMessage = ref('');
 let toastTimeout = null;
-const isLoggingOut = ref(false); // Added for the logout loading state
-
 
 const isSupportModalOpen = ref(false);
 const isProcessing = ref(false);
@@ -520,12 +496,17 @@ let stripe = null;
 let cardElement = null;
 
 const bloodTypes = ref([]);
+
+watch(filterActive, () => {
+    fetchPosts();
+});
+
 async function fetchBloodTypes() {
     try {
         const response = await axios.get('/bloodtypes');
-        bloodTypes.value = response.data.data;
+        bloodTypes.value = response.data.data || response.data;
     } catch (error) {
-        console.error("Data assignment error:", error);
+        console.error('fetchBloodTypes error:', error);
     }
 }
 
@@ -533,17 +514,21 @@ const newPost = ref({
     description: '',
     blood_type: '',
     location: '',
-    urgency: 'High',
-    mediaPreview: null
+    needed_by: '',
+    mediaFile: null,
+    mediaPreview: null,
 });
 
 async function fetchPosts() {
+    isLoading.value = true;
     try {
-        const response = await axios.get('/feed');
-        posts.value = response.data;
-    } catch (error) {
-        console.error("Fetch error:", error);
-    } finally {
+        const response = await axios.get('/feed?compatible=' + filterActive.value);
+        posts.value = response.data.data
+    }
+    catch (error) {
+
+    }
+    finally {
         isLoading.value = false;
     }
 }
@@ -554,35 +539,28 @@ onMounted(() => {
         try {
             user.value = JSON.parse(savedUser);
         } catch (e) {
-            console.error("User data parse error", e);
+            console.error('User parse error:', e);
         }
     }
     fetchPosts();
+    fetchBloodTypes();
 });
 
 const formatDate = (dateStr) => {
     if (!dateStr) return '';
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const dt = new Date(dateStr);
+    const now = new Date();
+    const diff = Math.floor((now - dt) / 86400000);
+    if (diff === 0) return 'Today';
+    if (diff === 1) return 'Yesterday';
+    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
-
-const canDonateTo = (recipientType) => {
-    if (!user.value) return false;
-    if (user.value.blood_type === 'O-') return true;
-    if (user.value.blood_type === recipientType) return true;
-    return false;
-};
-
-const filteredPosts = computed(() => {
-    if (!filterActive.value) return posts.value;
-    return posts.value.filter(post => canDonateTo(post.blood_type));
-});
 
 const isPostValid = computed(() => {
     return newPost.value.description.trim() !== '' &&
         newPost.value.blood_type !== '' &&
         newPost.value.location.trim() !== '';
 });
-
 
 const showToast = (message) => {
     toastMessage.value = message;
@@ -592,33 +570,43 @@ const showToast = (message) => {
 
 const submitPost = async () => {
     if (!isPostValid.value) return;
+
     try {
-        await axios.post('/feed', {
-            description: newPost.value.description,
-            blood_type: newPost.value.blood_type,
-            location: newPost.value.location,
-            urgency: newPost.value.urgency,
+        const formData = new FormData();
+        formData.append('description', newPost.value.description);
+        formData.append('blood_type', newPost.value.blood_type);
+        formData.append('location', newPost.value.location);
+        if (newPost.value.needed_by) {
+            formData.append('needed_by', newPost.value.needed_by);
+        }
+        if (newPost.value.mediaFile) {
+            formData.append('media_path', newPost.value.mediaFile);
+        }
+
+        await axios.post('/feed', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
         });
+
         await fetchPosts();
         isCreatePostOpen.value = false;
-        showToast('Request posted successfully!');
-        newPost.value = { description: '', blood_type: '', location: '', urgency: 'High', mediaPreview: null };
-        
-        // Moved the redirect here so it only happens when intentionally creating a post
-        setTimeout(() => router.push('profile'), 1000); 
+        showToast('Request posted.');
+        newPost.value = { description: '', blood_type: '', location: '', needed_by: '', mediaFile: null, mediaPreview: null };
     } catch (error) {
-        console.error("Post error:", error);
-        showToast('Failed to post request. Please try again.');
+        console.error('submitPost error:', error);
+        showToast('Could not post — try again.');
     }
 };
 
 const handleImageUpload = (event) => {
     const file = event.target.files[0];
-    if (file) newPost.value.mediaPreview = URL.createObjectURL(file);
+    if (!file) return;
+    newPost.value.mediaFile = file;
+    newPost.value.mediaPreview = URL.createObjectURL(file);
 };
 
 const removeImage = () => {
     if (newPost.value.mediaPreview) URL.revokeObjectURL(newPost.value.mediaPreview);
+    newPost.value.mediaFile = null;
     newPost.value.mediaPreview = null;
 };
 
@@ -627,26 +615,24 @@ async function logout() {
     try {
         await axios.post('/logout');
     } catch (error) {
-        console.error("Logout error:", error);
+        console.error('Logout error:', error);
     } finally {
         localStorage.removeItem('user_data');
         localStorage.removeItem('user_route');
-        delete axios.defaults.headers.common["Authorization"];
+        delete axios.defaults.headers.common['Authorization'];
         router.push('/login');
     }
 }
 
-// --- Stripe Logic ---
 const openSupportModal = async (post) => {
     selectedPostId.value = post.id;
     isSupportModalOpen.value = true;
-    
+
     if (!stripe) {
-        // REPLACE THIS with your actual Stripe publishable key
         stripe = await loadStripe('pk_test_51T3yYyDluo6RdWeVcZ0B1sr9RqOoGBwI50V1ET5UFAfHQknOGASQxwfoyjGZdnJgrWGlgxvgnGW1BAxVdUPckpIL00P8OwoRnO');
         const elements = stripe.elements();
         cardElement = elements.create('card', {
-            style: { base: { fontSize: '16px', color: '#1c1e21' } }
+            style: { base: { fontSize: '16px', color: '#1c1e21' } },
         });
     }
 
@@ -654,26 +640,26 @@ const openSupportModal = async (post) => {
 };
 
 const processSupport = async () => {
-    if (donationAmount.value <= 0) return;
+    if (!donationAmount.value || donationAmount.value <= 0) return;
     isProcessing.value = true;
 
     try {
         const { data } = await axios.post(`/feed/${selectedPostId.value}/donate`, {
-            amount: donationAmount.value
+            amount: donationAmount.value,
         });
 
         const result = await stripe.confirmCardPayment(data.client_secret, {
-            payment_method: { card: cardElement }
+            payment_method: { card: cardElement },
         });
 
         if (result.error) {
             showToast(result.error.message);
         } else if (result.paymentIntent.status === 'succeeded') {
-            showToast("Donation successful! Thank you.");
+            showToast('Payment processed. Thank you.');
             closeSupportModal();
         }
     } catch (e) {
-        showToast("Error connecting to payment server.");
+        showToast('Payment failed — please try again.');
     } finally {
         isProcessing.value = false;
     }
