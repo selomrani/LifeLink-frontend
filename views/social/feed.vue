@@ -358,8 +358,8 @@
                                 <select v-model="newPost.blood_type"
                                     class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-200 font-bold focus:bg-white transition-colors appearance-none">
                                     <option disabled value="">Select type...</option>
-                                    <option v-for="bt in bloodTypes" :key="bt.id || bt"
-                                        :value="bt.id || bt.blood_type || bt">{{ bt.blood_type || bt.name || bt }}
+                                    <option v-for="bt in bloodTypes" :key="bt.id" :value="bt.id">
+                                        {{ bt.blood_type || bt.name }}
                                     </option>
                                 </select>
                             </div>
@@ -574,26 +574,46 @@ const submitPost = async () => {
     try {
         const formData = new FormData();
         formData.append('description', newPost.value.description);
-        formData.append('blood_type', newPost.value.blood_type);
+
+        // UPDATE: Change 'blood_type' to 'blood_type_id' to match your backend
+        formData.append('blood_type_id', newPost.value.blood_type);
+
         formData.append('location', newPost.value.location);
+
         if (newPost.value.needed_by) {
             formData.append('needed_by', newPost.value.needed_by);
         }
+
         if (newPost.value.mediaFile) {
             formData.append('media_path', newPost.value.mediaFile);
         }
 
+        // Send the request
         await axios.post('/feed', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
 
-        await fetchPosts();
+        // 3. UI Cleanup
         isCreatePostOpen.value = false;
-        showToast('Request posted.');
-        newPost.value = { description: '', blood_type: '', location: '', needed_by: '', mediaFile: null, mediaPreview: null };
+        showToast('Request posted successfully!');
+
+        // Reset the form
+        newPost.value = {
+            description: '',
+            blood_type: '',
+            location: '',
+            needed_by: '',
+            mediaFile: null,
+            mediaPreview: null
+        };
+
+        // Refresh the feed to show the new post
+        await fetchPosts();
+
     } catch (error) {
         console.error('submitPost error:', error);
-        showToast('Could not post — try again.');
+        // Hint: If you get a 422, check your console to see which field failed validation
+        showToast('Could not post — check your details.');
     }
 };
 
