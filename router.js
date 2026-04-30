@@ -11,6 +11,7 @@ import reset from "./views/auth/reset.vue";
 import Forbidden from "./views/Forbidden.vue";
 import profile from "./views/social/profile.vue";
 import postDetails from "./views/social/details.vue";
+import users from "./views/admin/users.vue";
 const routes = [
   {
     path: "/",
@@ -71,7 +72,11 @@ const routes = [
     path: "/post/:id",
     name: "postDetails",
     component: postDetails,
-  },
+  },{
+  path : "/users",
+    name: "users",
+    component: users,
+  }
 ];
 
 const router = createRouter({
