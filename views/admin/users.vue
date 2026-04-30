@@ -40,7 +40,8 @@
             <tbody class="bg-white divide-y divide-gray-100">
 
             <!-- Skeleton Loader -->
-            <tr v-if="isLoading" v-for="i in 3" :key="'skel-'+i" class="animate-pulse">
+            <template v-if="isLoading">
+            <tr v-for="i in 3" :key="'skel-'+i" class="animate-pulse">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="h-10 w-10 rounded-full bg-gray-200"></div>
@@ -55,6 +56,7 @@
               <td class="px-6 py-4 whitespace-nowrap"><div class="h-4 bg-gray-200 rounded w-20"></div></td>
               <td class="px-6 py-4 whitespace-nowrap text-right"><div class="h-8 bg-gray-200 rounded-lg w-16 ml-auto"></div></td>
             </tr>
+            </template>
 
             <!-- Real Data -->
             <tr v-else v-for="user in users" :key="user.id" class="hover:bg-gray-50/50 transition-colors group">
@@ -99,14 +101,18 @@
                 {{ user.joinedAt }}
               </td>
 
-              <!-- Actions (Ban Button) -->
+              <!-- Actions (Ban/Unban Button) -->
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button
                     @click="handleBanUser(user)"
-                    class="inline-flex items-center justify-center px-3 py-1.5 border border-red-200 text-red-600 bg-red-50 hover:bg-red-600 hover:text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 border"
+                    :class="user.isActive
+                      ? 'border-red-200 text-red-600 bg-red-50 hover:bg-red-600 hover:text-white focus:ring-red-500'
+                      : 'border-green-200 text-green-700 bg-green-50 hover:bg-green-600 hover:text-white focus:ring-green-500'"
                 >
-                  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
-                  Ban User
+                  <svg v-if="user.isActive" class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                  <svg v-else class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  {{ user.isActive ? 'Ban' : 'Unban' }}
                 </button>
               </td>
             </tr>
@@ -143,45 +149,30 @@
 import { ref, onMounted } from 'vue'
 import axios from "axios"
 const isLoading = ref(false)
-const users = ref([
-  {
-    "id": 12,
-    "fullName": "Darius Lowery",
-    "email": "mucolenib@mailinator.com",
-    "profilePhotoUrl": "https://amzn-lifelink-storage.s3.us-east-1.amazonaws.com/posts_media/191VV3ICxXATOLtnf60ys9HyizDVMm8Xyvh3SgdB.jpg",
-    "bloodType": "O+",
-    "role": "donor",
-    "joinedAt": "Apr 29, 2026"
-  },
-  {
-    "id": 13,
-    "fullName": "Sarah Jenkins",
-    "email": "sarah.j@example.com",
-    "profilePhotoUrl": "https://ui-avatars.com/api/?name=Sarah+Jenkins&color=7F9CF5&background=EBF4FF",
-    "bloodType": "A-",
-    "role": "admin",
-    "joinedAt": "Apr 30, 2026"
-  }
-])
+const users = ref([])
 
 const handleBanUser = async (user) => {
-  // Good UX: Always confirm destructive actions!
-  if (confirm(`Are you absolutely sure you want to ban ${user.fullName}?`)) {
-    console.log(`Banning user ID: ${user.id}`)
-
+  const action = user.isActive ? 'ban' : 'unban'
+  if (confirm(`Are you sure you want to ${action} ${user.fullName}?`)) {
+    try {
+      const { data } = await axios.put(`/users/${user.id}/toggle-ban`)
+      const target = users.value.find(u => u.id === user.id)
+      if (target) target.isActive = data.is_active
+    } catch (error) {
+      console.error('Failed to toggle ban:', error)
+    }
   }
 }
 
 onMounted(async () => {
   isLoading.value = true
   try {
-    const response = await axios.get('/api/users')
+    const response = await axios.get('/users')
     users.value = response.data.data
   } catch (error) {
     console.error('Failed to fetch users:', error)
   } finally {
     isLoading.value = false
   }
-  */
 })
 </script>
