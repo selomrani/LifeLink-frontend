@@ -12,6 +12,7 @@ import Forbidden from "./views/Forbidden.vue";
 import profile from "./views/social/profile.vue";
 import postDetails from "./views/social/details.vue";
 import users from "./views/admin/users.vue";
+import reports from "./views/admin/reports.vue";
 const routes = [
   {
     path: "/",
@@ -76,6 +77,14 @@ const routes = [
   path : "/users",
     name: "users",
     component: users,
+  },{
+  path: "/dashboard/reports",
+    name: "reports",
+    component: reports
+  },{
+  path : "/myposts",
+    name: "myposts",
+    component: () => import("./views/social/myposts.vue"),
   }
 ];
 
