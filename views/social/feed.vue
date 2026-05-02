@@ -133,13 +133,18 @@
           </div>
 
           <div class="p-3 bg-gray-50/50 flex gap-2 rounded-b-2xl">
-            <button @click="offerDonation(post)" :disabled="donatingPostId === post.id"
-                    class="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-2.5 rounded-xl transition-all shadow-sm shadow-red-200 active:scale-[0.98] flex items-center justify-center gap-2">
+            <button
+                @click="offerDonation(post)"
+                :disabled="donatingPostId === post.id || !user?.can_donate"
+                class="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-60 disabled:grayscale disabled:cursor-not-allowed text-white font-bold py-2.5 rounded-xl transition-all shadow-sm shadow-red-200 active:scale-[0.98] flex items-center justify-center gap-2"
+            >
               <span v-if="donatingPostId === post.id" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-              <svg v-else class="w-5 h-5" viewBox="0 0 24 24" fill="white">
-                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-              </svg>
-              {{ donatingPostId === post.id ? 'Sending...' : 'Donate Blood' }}
+              <template v-else>
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="white">
+                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                </svg>
+                {{ !user?.can_donate ? 'Wait for Cooldown' : 'Donate Blood' }}
+              </template>
             </button>
 
             <button @click="openSupportModal(post)"
@@ -737,12 +742,17 @@ const processSupport = async () => {
 const offerDonation = async (post) => {
   if (donatingPostId.value) return;
   donatingPostId.value = post.id;
+
   try {
     await axios.post(`/post/${post.id}/donate`);
-    showToast('Donation offer sent!');
+    showToast('Donation offer sent successfully!');
     await fetchPosts();
   } catch (e) {
-    showToast(e.response?.data?.message || 'Could not send donation offer.');
+    const errorMessage = e.response?.data?.message || 'Could not send donation offer.';
+    showToast(errorMessage);
+    if (e.response?.status === 422) {
+      console.warn("User is in medical cooldown period.");
+    }
   } finally {
     donatingPostId.value = null;
   }
