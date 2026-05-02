@@ -81,6 +81,10 @@ const routes = [
   path: "/dashboard/reports",
     name: "reports",
     component: reports
+  },{
+  path : "/myposts",
+    name: "myposts",
+    component: () => import("./views/social/myposts.vue"),
   }
 ];
 

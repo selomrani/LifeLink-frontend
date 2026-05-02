@@ -645,20 +645,19 @@ async function logout() {
 }
 
 const openSupportModal = async (post) => {
-    selectedPostId.value = post.id;
-    isSupportModalOpen.value = true;
+  selectedPostId.value = post.id;
+  isSupportModalOpen.value = true;
 
-    if (!stripe) {
-        stripe = await loadStripe('pk_test_51T3yYyDluo6RdWeVcZ0B1sr9RqOoGBwI50V1ET5UFAfHQknOGASQxwfoyjGZdnJgrWGlgxvgnGW1BAxVdUPckpIL00P8OwoRnO');
-        const elements = stripe.elements();
-        cardElement = elements.create('card', {
-            style: { base: { fontSize: '16px', color: '#1c1e21' } },
-        });
-    }
+  if (!stripe) {
+    stripe = await loadStripe('pk_test_51T3yYyDluo6RdWeVcZ0B1sr9RqOoGBwI50V1ET5UFAfHQknOGASQxwfoyjGZdnJgrWGlgxvgnGW1BAxVdUPckpIL00P8OwoRnO');
+  }
+  const elements = stripe.elements();
+  cardElement = elements.create('card', {
+    style: { base: { fontSize: '16px', color: '#1c1e21' } },
+  });
 
-    setTimeout(() => cardElement.mount('#card-element'), 100);
+  setTimeout(() => cardElement.mount('#card-element'), 100);
 };
-
 const processSupport = async () => {
     if (!donationAmount.value || donationAmount.value <= 0) return;
     isProcessing.value = true;
@@ -686,8 +685,11 @@ const processSupport = async () => {
 };
 
 const closeSupportModal = () => {
-    isSupportModalOpen.value = false;
-    if (cardElement) cardElement.unmount();
+  isSupportModalOpen.value = false;
+  if (cardElement) {
+    cardElement.unmount();
+    cardElement = null;
+  }
 };
 </script>
 
