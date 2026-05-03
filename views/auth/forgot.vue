@@ -43,15 +43,15 @@ async function sendEmail() {
                     </span>
                 </div>
                 <nav class="hidden md:flex gap-8 font-medium text-slate-600">
-                    <a href="#" class="hover:text-red-600 transition-colors">Home</a>
-                    <a href="#" class="hover:text-red-600 transition-colors">How it Works</a>
-                    <a href="#" class="hover:text-red-600 transition-colors">Centers</a>
+                    <router-link to="/" class="hover:text-red-600 transition-colors">Home</router-link>
+                    <router-link to="/how-it-works" class="hover:text-red-600 transition-colors">How it Works</router-link>
+                    <router-link to="/how-it-works" class="hover:text-red-600 transition-colors">Centers</router-link>
                 </nav>
                 <div class="flex gap-4">
-                    <a href="#"
+                    <router-link to="/register"
                         class="px-5 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 shadow-md shadow-red-200 rounded-full transition-colors">
                         Join as Donor
-                    </a>
+                    </router-link>
                 </div>
             </div>
         </header>
@@ -116,14 +116,14 @@ async function sendEmail() {
 
                 <p class="text-center mt-8 text-slate-600 font-medium">
                     Remember your password?
-                    <a href="#"
+                    <router-link to="/login"
                         class="text-red-600 hover:text-red-700 font-bold ml-1 transition-colors inline-flex items-center gap-1">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
                         Back to log in
-                    </a>
+                    </router-link>
                 </p>
             </div>
         </main>

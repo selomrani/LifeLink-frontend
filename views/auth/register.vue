@@ -70,7 +70,7 @@ onMounted(() => {
                     <router-link to="/" class="hover:text-red-600 transition-colors">Home</router-link>
                     <router-link to="/how-it-works" class="hover:text-red-600 transition-colors">How it
                         Works</router-link>
-                    <router-link to="/centers" class="hover:text-red-600 transition-colors">Donation
+                    <router-link to="/how-it-works" class="hover:text-red-600 transition-colors">Donation
                         Centers</router-link>
                 </nav>
                 <div class="flex gap-4">

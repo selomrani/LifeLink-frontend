@@ -1,5 +1,18 @@
 <template>
   <div class="min-h-screen bg-gray-50 flex flex-col font-sans py-8">
+    <header class="bg-white shadow-sm border-b border-gray-200 mb-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16 items-center">
+          <router-link to="/dashboard" class="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-red-600 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Dashboard
+          </router-link>
+          <button @click="handleLogout" class="text-sm font-medium text-gray-600 hover:text-red-600 transition-colors">Logout</button>
+        </div>
+      </div>
+    </header>
     <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
 
       <!-- Page Header -->
@@ -147,9 +160,22 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from "axios"
+
+const router = useRouter()
 const isLoading = ref(false)
 const users = ref([])
+
+const handleLogout = async () => {
+  try {
+    await axios.post('/logout')
+  } catch (e) {}
+  localStorage.removeItem('user_data')
+  localStorage.removeItem('user_route')
+  delete axios.defaults.headers.common['Authorization']
+  router.push('/login')
+}
 
 const handleBanUser = async (user) => {
   const action = user.isActive ? 'ban' : 'unban'

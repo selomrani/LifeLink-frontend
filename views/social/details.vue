@@ -2,7 +2,7 @@
     <div class="min-h-screen bg-[#F3F4F6] text-[#1c1e21] pb-12 font-sans selection:bg-red-100 selection:text-red-900 relative">
         <header
             class="bg-white/95 backdrop-blur-md shadow-sm sticky top-0 z-40 h-16 flex items-center px-4 md:px-8 border-b border-gray-200">
-            <a href="/feed"
+            <router-link to="/feed"
                 class="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium mr-auto group">
                 <div class="p-2 rounded-full group-hover:bg-gray-100 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -10,7 +10,7 @@
                     </svg>
                 </div>
                 <span class="hidden sm:inline">Back to Feed</span>
-            </a>
+            </router-link>
             <span class="text-lg font-bold text-gray-900 absolute left-1/2 -translate-x-1/2">
                 Request Details
             </span>
@@ -44,10 +44,10 @@
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 mb-2">Post Not Found</h3>
                 <p class="text-gray-500">The request you are looking for doesn't exist or has been removed.</p>
-                <a href="/feed"
+                <router-link to="/feed"
                     class="mt-6 inline-block px-6 py-2.5 bg-gray-900 text-white font-medium rounded-xl hover:bg-gray-800 transition-colors">
                     Return to Feed
-                </a>
+                </router-link>
             </div>
 
             <div v-else class="space-y-6">
@@ -167,6 +167,23 @@
                             </button>
                         </div>
                     </div>
+
+                    <div v-if="currentUser?.id === post.user_id" class="px-5 sm:px-6 py-3 bg-gray-50 border-t border-gray-100 flex gap-3">
+                        <button v-if="post.status !== 'completed'" @click="closePostDetails"
+                                class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-xl transition-all text-sm flex items-center justify-center gap-2 active:scale-[0.98]">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Mark as complete
+                        </button>
+                        <button @click="confirmDeletePostDetails"
+                                class="flex-1 bg-white border border-red-200 text-red-600 hover:bg-red-50 font-bold py-2.5 rounded-xl transition-all text-sm flex items-center justify-center gap-2 active:scale-[0.98]">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Delete
+                        </button>
+                    </div>
                 </article>
 
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -256,6 +273,7 @@
                                         <button type="button"
                                             class="hover:text-gray-800 transition-colors">Reply</button>
                                         <button v-if="currentUser?.id === comment.user?.id" type="button"
+                                            @click="deleteComment(comment)"
                                             class="hover:text-red-600 transition-colors ml-auto sm:opacity-0 sm:group-hover:opacity-100">
                                             Delete
                                         </button>
@@ -297,6 +315,27 @@
             </div>
         </transition>
 
+        <transition name="fade">
+            <div v-if="isDeleteModalOpen" class="fixed inset-0 z-[120] flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="isDeleteModalOpen = false"></div>
+                <div class="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden">
+                    <div class="p-6 text-center">
+                        <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Delete this request?</h3>
+                        <p class="text-sm text-gray-500 mb-6">This cannot be undone.</p>
+                        <div class="flex gap-3">
+                            <button @click="isDeleteModalOpen = false" class="flex-1 px-4 py-3 rounded-xl font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">Cancel</button>
+                            <button @click="deletePostDetails" class="flex-1 px-4 py-3 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 transition-colors">Yes, Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
         <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[150] bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl font-medium text-sm transition-all duration-300 flex items-center gap-3"
             :class="toastMessage ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95 pointer-events-none'">
             <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]">
@@ -310,10 +349,11 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { loadStripe } from '@stripe/stripe-js';
 
 const route = useRoute();
+const router = useRouter();
 const post = ref(null);
 const isLoading = ref(true);
 const commentText = ref('');
@@ -332,6 +372,7 @@ const isProcessing = ref(false);
 const donationAmount = ref(10);
 let stripe = null;
 let cardElement = null;
+const isDeleteModalOpen = ref(false);
 
 const currentUser = (() => {
     try {
@@ -389,13 +430,28 @@ const openSupportModal = async () => {
 };
 
 const processSupport = async () => {
-    if (donationAmount.value <= 0) return;
+    if (!cardElement) {
+        showToast("Payment details not loaded. Please try again.");
+        return;
+    }
+
+    if (donationAmount.value <= 0) {
+        showToast("Please enter a valid amount.");
+        return;
+    }
+
     isProcessing.value = true;
 
     try {
         const { data } = await axios.post(`/feed/${post.value.id}/donate`, {
             amount: donationAmount.value
         });
+
+        if (!data.client_secret) {
+            showToast("Could not initialize payment. Please try again.");
+            return;
+        }
+
         const result = await stripe.confirmCardPayment(data.client_secret, {
             payment_method: { card: cardElement }
         });
@@ -432,6 +488,42 @@ const formatDate = (dateString) => {
 const formatShortDate = (dateString) => {
     if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+const deleteComment = async (comment) => {
+    try {
+        await axios.delete(`/comments/${comment.id}`);
+        post.value.comments = post.value.comments.filter(c => c.id !== comment.id);
+        showToast('Comment deleted.');
+    } catch (e) {
+        showToast('Could not delete comment.');
+    }
+};
+
+const closePostDetails = async () => {
+    try {
+        await axios.put(`/feed/${post.value.id}/close`);
+        post.value.status = 'completed';
+        showToast('Request marked as complete!');
+    } catch (e) {
+        showToast('Could not close this request.');
+    }
+};
+
+const confirmDeletePostDetails = () => {
+    isDeleteModalOpen.value = true;
+};
+
+const deletePostDetails = async () => {
+    try {
+        await axios.delete(`/feed/${post.value.id}`);
+        showToast('Request deleted.');
+        router.push('/feed');
+    } catch (e) {
+        showToast('Could not delete this request.');
+    } finally {
+        isDeleteModalOpen.value = false;
+    }
 };
 </script>
 

@@ -47,7 +47,7 @@ async function updateProfile() {
         formData.append('firstname', user.value.firstname);
         formData.append('lastname', user.value.lastname);
         formData.append('email', user.value.email);
-        if (!user.value.blood_type_id) {
+        if (user.value.blood_type_id) {
             formData.append('blood_type_id', user.value.blood_type_id);
         }
         if (fileInput.value.files[0]) {

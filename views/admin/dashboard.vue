@@ -141,24 +141,33 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const isLoading = ref(true)
 
 const viewProfile = () => {
-  console.log('Navigate to profile...')
+  router.push('/profile')
 }
 
-const handleLogout = () => {
-  console.log('Logging out...')
+const handleLogout = async () => {
+  try {
+    await axios.post('/logout')
+  } catch (e) {}
+  localStorage.removeItem('user_data')
+  localStorage.removeItem('user_route')
+  delete axios.defaults.headers.common['Authorization']
+  router.push('/login')
 }
 
 const handleStatClick = (stat) => {
-  console.log(`Navigating to details for: ${stat.title}`)
+  if (stat.title === 'Total Users' || stat.title === 'Lives Saved') {
+    router.push('/users')
+  }
 }
 
 const viewAllUsers = () => {
-  console.log('Navigating to all users list...')
-
+  router.push('/users')
 }
 
 const apiData = ref({

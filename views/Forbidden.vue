@@ -17,7 +17,7 @@
                         active-class="text-red-600">Home</router-link>
                     <router-link to="/how-it-works" class="hover:text-red-600 transition-colors"
                         active-class="text-red-600">How it Works</router-link>
-                    <router-link to="/centers" class="hover:text-red-600 transition-colors"
+                    <router-link to="/how-it-works" class="hover:text-red-600 transition-colors"
                         active-class="text-red-600">Centers</router-link>
                 </nav>
 

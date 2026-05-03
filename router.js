@@ -85,12 +85,29 @@ const routes = [
   path : "/myposts",
     name: "myposts",
     component: () => import("./views/social/myposts.vue"),
+  },{
+  path: '/users/profile/:id',
+    component: () => import('./views/social/userProfile.vue'),
   }
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+router.beforeEach((to, from) => {
+  const userRoute = localStorage.getItem('user_route');
+
+  if (to.name === 'dashboard' || to.name === 'users' || to.name === 'reports') {
+    if (userRoute !== 'admin') {
+      return { name: 'feed' };
+    }
+  }
+
+  if (userRoute === 'admin' && to.name === 'feed') {
+    return { name: 'dashboard' };
+  }
 });
 
 export default router;

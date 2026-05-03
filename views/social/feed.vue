@@ -72,10 +72,10 @@
 
           <div class="p-4 flex items-start justify-between">
             <div class="flex gap-3 items-center">
-              <img :src="post.user?.profile_photo_url"
-                   class="w-12 h-12 rounded-full border-2 border-gray-50 shadow-sm object-cover" alt="Poster">
+              <img @click="viewUserProfile(post.user?.id)" :src="post.user?.profile_photo_url"
+                   class="w-12 h-12 rounded-full border-2 border-gray-50 shadow-sm object-cover cursor-pointer hover:ring-2 hover:ring-red-200 transition-all" alt="Poster">
               <div>
-                <h3 class="font-bold text-[16px] text-gray-900 leading-tight">
+                <h3 @click="viewUserProfile(post.user?.id)" class="font-bold text-[16px] text-gray-900 leading-tight cursor-pointer hover:text-red-600 transition-colors">
                   {{ post.user?.firstname }} {{ post.user?.lastname }}
                 </h3>
                 <div class="flex flex-wrap items-center gap-1.5 text-[13px] text-gray-500 mt-1">
@@ -135,7 +135,7 @@
           <div class="p-3 bg-gray-50/50 flex gap-2 rounded-b-2xl">
             <button
                 @click="offerDonation(post)"
-                :disabled="donatingPostId === post.id || !user?.can_donate"
+                :disabled="donatingPostId === post.id || user?.can_donate === false"
                 class="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-60 disabled:grayscale disabled:cursor-not-allowed text-white font-bold py-2.5 rounded-xl transition-all shadow-sm shadow-red-200 active:scale-[0.98] flex items-center justify-center gap-2"
             >
               <span v-if="donatingPostId === post.id" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
@@ -143,7 +143,7 @@
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="white">
                   <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
                 </svg>
-                {{ !user?.can_donate ? 'Wait for Cooldown' : 'Donate Blood' }}
+                {{ user?.can_donate === false ? 'Wait for Cooldown' : 'Donate Blood' }}
               </template>
             </button>
 
@@ -164,6 +164,30 @@
               </svg>
               Offers
             </button>
+            <div v-if="user && post.user_id === user.id" class="relative" ref="postMenuTarget">
+              <button @click="togglePostMenu(post.id)"
+                      class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 font-bold py-2.5 px-3 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center shadow-sm text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01" />
+                </svg>
+              </button>
+              <div v-if="openPostMenuId === post.id" class="absolute right-0 bottom-full mb-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-10">
+                <button v-if="post.status !== 'completed'" @click="closePost(post); closePostMenu()"
+                        class="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-green-700 hover:bg-green-50 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Mark as complete
+                </button>
+                <button @click="confirmDeletePost(post); closePostMenu()"
+                        class="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete post
+                </button>
+              </div>
+            </div>
           </div>
         </article>
 
@@ -252,7 +276,7 @@
                 </svg>
               </button>
 
-              <button @click="$router.push('/profile/edit'); isProfileOpen = false;"
+              <button @click="$router.push('/profile'); isProfileOpen = false;"
                       class="w-full flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-100 group">
                 <div class="flex items-center gap-3">
                   <div class="p-2 bg-gray-100 rounded-lg text-gray-500 group-hover:bg-gray-200 transition-colors">
@@ -519,12 +543,36 @@
       </div>
     </transition>
 
+    <!-- Delete post confirmation -->
+    <transition name="fade">
+      <div v-if="isDeleteModalOpen" class="fixed inset-0 z-[130] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="isDeleteModalOpen = false"></div>
+        <div class="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden">
+          <div class="p-6 text-center">
+            <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Delete this request?</h3>
+            <p class="text-sm text-gray-500 mb-6">This cannot be undone. All donation offers and comments will be lost.</p>
+            <div class="flex gap-3">
+              <button @click="isDeleteModalOpen = false" class="flex-1 px-4 py-3 rounded-xl font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">Cancel</button>
+              <button @click="deletePost" class="flex-1 px-4 py-3 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 transition-colors">Yes, Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
     <!-- Toast -->
     <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[150] bg-gray-900 text-white px-6 py-3 rounded-full shadow-2xl font-medium text-sm transition-all duration-300 flex items-center gap-3"
          :class="toastMessage ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95 pointer-events-none'">
       <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]"></div>
       {{ toastMessage }}
     </div>
+
+    <ChatBot />
 
   </div>
 </template>
@@ -534,6 +582,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
 import router from '../../router';
 import { loadStripe } from '@stripe/stripe-js';
+import ChatBot from '../../components/ChatBot.vue';
 
 const user = ref(null);
 const posts = ref([]);
@@ -562,6 +611,9 @@ const postDonations = ref([]);
 const postDonationsLoading = ref(false);
 
 const bloodTypes = ref([]);
+const openPostMenuId = ref(null);
+const isDeleteModalOpen = ref(false);
+const postToDelete = ref(null);
 const newPost = ref({
   description: '',
   blood_type: '',
@@ -813,6 +865,52 @@ const rejectDonation = async (donation) => {
     showToast('Donation rejected.');
   } catch (e) {
     showToast('Could not reject this donation.');
+  }
+};
+
+const togglePostMenu = (postId) => {
+  openPostMenuId.value = openPostMenuId.value === postId ? null : postId;
+};
+
+const closePostMenu = () => {
+  openPostMenuId.value = null;
+};
+
+const closePost = async (post) => {
+  try {
+    await axios.put(`/feed/${post.id}/close`);
+    post.status = 'completed';
+    showToast('Request marked as complete!');
+  } catch (e) {
+    showToast('Could not close this request.');
+  }
+};
+
+const confirmDeletePost = (post) => {
+  postToDelete.value = post;
+  isDeleteModalOpen.value = true;
+};
+
+const deletePost = async () => {
+  if (!postToDelete.value) return;
+  try {
+    await axios.delete(`/feed/${postToDelete.value.id}`);
+    posts.value = posts.value.filter(p => p.id !== postToDelete.value.id);
+    showToast('Request deleted.');
+  } catch (e) {
+    showToast('Could not delete this request.');
+  } finally {
+    isDeleteModalOpen.value = false;
+    postToDelete.value = null;
+  }
+};
+
+const viewUserProfile = (userId) => {
+  if (!userId) return;
+  if (user.value && userId === user.value.id) {
+    isProfileOpen.value = true;
+  } else {
+    router.push(`/user/${userId}`);
   }
 };
 </script>

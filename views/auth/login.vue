@@ -51,8 +51,8 @@ const handleLogin = async () => {
                 </div>
                 <nav class="hidden md:flex gap-8 font-medium text-slate-600">
                     <router-link to="/" class="hover:text-red-600 transition-colors">Home</router-link>
-                    <a href="#" class="hover:text-red-600 transition-colors">How it Works</a>
-                    <a href="#" class="hover:text-red-600 transition-colors">Centers</a>
+                    <router-link to="/how-it-works" class="hover:text-red-600 transition-colors">How it Works</router-link>
+                    <router-link to="/how-it-works" class="hover:text-red-600 transition-colors">Centers</router-link>
                 </nav>
                 <div class="flex gap-4">
                     <router-link to="/register"
@@ -103,9 +103,9 @@ const handleLogin = async () => {
                         <div class="space-y-2">
                             <div class="flex justify-between items-center px-1">
                                 <label for="password" class="text-sm font-bold text-slate-700">Password</label>
-                                <a href="#"
+                                <router-link to="/forgot-password"
                                     class="text-xs font-semibold text-red-600 hover:text-red-700 transition-colors">Forgot
-                                    password?</a>
+                                    password?</router-link>
                             </div>
                             <input v-model="form.password" type="password" id="password"
                                 :class="{ 'border-red-500': errors.password || errorMessage }"

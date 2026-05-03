@@ -12,7 +12,7 @@
       <nav class="hidden md:flex gap-8 font-medium text-slate-600">
         <router-link to="/" class="hover:text-red-600 transition-colors">Home</router-link>
         <router-link to="/how-it-works" class="hover:text-red-600 transition-colors">How it Works</router-link>
-        <router-link to="/centers" class="hover:text-red-600 transition-colors">Centers</router-link>
+        <router-link to="/how-it-works" class="hover:text-red-600 transition-colors">Centers</router-link>
       </nav>
       <div class="flex gap-4">
         <router-link to="/register"
