@@ -194,7 +194,10 @@ onMounted(async () => {
   isLoading.value = true
   try {
     const response = await axios.get('/users')
-    users.value = response.data.data
+    users.value = response.data.data.map(user => ({
+      ...user,
+      isActive: user.is_active
+    }))
   } catch (error) {
     console.error('Failed to fetch users:', error)
   } finally {

@@ -708,7 +708,9 @@ const submitPost = async () => {
     newPost.value = { description: '', blood_type: '', location: '', needed_by: '', mediaFile: null, mediaPreview: null };
     await fetchPosts();
   } catch (e) {
-    showToast('Could not post — check your details.');
+    console.error('Post error:', e.response?.data || e.message);
+    const errorMessage = e.response?.data?.message || e.response?.data?.error || 'Could not post — check your details.';
+    showToast(errorMessage);
   }
 };
 

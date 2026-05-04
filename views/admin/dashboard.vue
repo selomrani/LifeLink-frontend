@@ -86,7 +86,7 @@
       <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
           <h3 class="text-lg font-bold text-gray-800">Pending User Reports</h3>
-          <a href="#" class="text-sm font-medium text-red-600 hover:text-red-800">View all reports &rarr;</a>
+          <router-link to="/dashboard/reports" class="text-sm font-medium text-red-600 hover:text-red-800">View all reports &rarr;</router-link>
         </div>
 
         <div class="overflow-x-auto">
@@ -163,6 +163,9 @@ const handleLogout = async () => {
 const handleStatClick = (stat) => {
   if (stat.title === 'Total Users' || stat.title === 'Lives Saved') {
     router.push('/users')
+  }
+  if (stat.title === 'Pending Reports') {
+    router.push('/dashboard/reports')
   }
 }
 
